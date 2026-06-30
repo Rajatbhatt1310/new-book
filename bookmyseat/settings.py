@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
-FRONTEND_DIR = BASE_DIR.parent / "frontend" / "dist"
+FRONTEND_DIR = BASE_DIR / "frontend" / "dist"
 
 
 SECRET_KEY = os.environ.get(
