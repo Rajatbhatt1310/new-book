@@ -29,6 +29,9 @@ urlpatterns = [
     path("api/lock-seats/", movie_views.lock_seats),
     path("api/confirm-booking/", movie_views.confirm_booking),
 
+    # ✅ NEW - Logged in user's bookings
+    path("api/my-bookings/", movie_views.my_bookings),
+
     # Payment APIs
     path(
         "api/create-payment-order/",
@@ -59,7 +62,7 @@ urlpatterns = [
         },
     ),
 
-    # Media files (works in production too)
+    # Media files
     path(
         "media/<path:path>",
         serve,
@@ -69,7 +72,6 @@ urlpatterns = [
     ),
 ]
 
-# Local development static/media
 if settings.DEBUG:
     urlpatterns += static(
         settings.MEDIA_URL,

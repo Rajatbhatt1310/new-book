@@ -949,3 +949,40 @@ def debug_view(request):
         "MEDIA_URL": settings.MEDIA_URL,
         "MEDIA_ROOT": str(settings.MEDIA_ROOT),
     })
+
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+
+@login_required
+def my_bookings(request):
+    bookings = (
+        Booking.objects
+        .filter(user=request.user)
+        .select_related("movie", "theater", "seat")
+        .order_by("-booked_at")
+    )
+
+    data = []
+
+    for booking in bookings:
+        data.append({
+            "id": booking.id,
+            "movie": {
+                "id": booking.movie.id,
+                "name": booking.movie.name,
+            },
+            "theater": {
+                "id": booking.theater.id,
+                "name": booking.theater.name,
+            },
+            "selectedSeats": [
+                {
+                    "seat_number": booking.seat.seat_number
+                }
+            ],
+            "total": 250,
+            "status": "Confirmed",
+            "booked_at": booking.booked_at.isoformat(),
+        })
+
+    return JsonResponse(data, safe=False)    
