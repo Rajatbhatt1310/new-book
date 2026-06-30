@@ -940,3 +940,12 @@ def admin_analytics_api(request):
     cache.set(cache_key, data, timeout=60)
 
     return JsonResponse(data)
+from django.http import JsonResponse
+from django.conf import settings
+
+def debug_view(request):
+    return JsonResponse({
+        "DEBUG": settings.DEBUG,
+        "MEDIA_URL": settings.MEDIA_URL,
+        "MEDIA_ROOT": str(settings.MEDIA_ROOT),
+    })
