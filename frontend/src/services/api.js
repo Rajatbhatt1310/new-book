@@ -186,3 +186,13 @@ export async function getAdminAnalytics() {
 
   return response.json();
 }
+export async function getMyBookings() {
+  return request(
+    "/my-bookings/",
+    {
+      method: "GET",
+      credentials: "include",
+    },
+    []
+  );
+}
