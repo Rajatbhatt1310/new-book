@@ -6,12 +6,20 @@ from django.views.generic import TemplateView
 from django.views.static import serve
 
 from movies import views as movie_views
+from users import views as user_views
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),
 
     # Debug API
     path("api/debug/", movie_views.debug_view),
+
+    # Authentication APIs
+    path("api/login/", user_views.api_login),
+    path("api/logout/", user_views.api_logout),
+    path("api/signup/", user_views.api_signup),
+    path("api/me/", user_views.api_me),
 
     # Movie APIs
     path("api/movies/", movie_views.api_movie_list),
@@ -29,7 +37,7 @@ urlpatterns = [
     path("api/lock-seats/", movie_views.lock_seats),
     path("api/confirm-booking/", movie_views.confirm_booking),
 
-    # ✅ NEW - Logged in user's bookings
+    # Logged in user's bookings
     path("api/my-bookings/", movie_views.my_bookings),
 
     # Payment APIs
@@ -78,7 +86,6 @@ if settings.DEBUG:
         document_root=settings.MEDIA_ROOT,
     )
 
-# React SPA routes (MUST BE LAST)
 urlpatterns += [
     path(
         "",

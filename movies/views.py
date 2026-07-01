@@ -962,19 +962,27 @@ def my_bookings(request):
         .order_by("-booked_at")
     )
 
-    data = {
-        "logged_in_user": request.user.username,
-        "user_id": request.user.id,
-        "booking_count": bookings.count(),
-        "bookings": [
-            {
-                "booking_id": b.id,
-                "booking_user": b.user.username,
-                "movie": b.movie.name,
-                "seat": b.seat.seat_number,
-            }
-            for b in bookings
-        ],
-    }
+    data = []
 
-    return JsonResponse(data)
+    for booking in bookings:
+        data.append({
+            "id": booking.id,
+            "movie": {
+                "id": booking.movie.id,
+                "name": booking.movie.name,
+            },
+            "theater": {
+                "id": booking.theater.id,
+                "name": booking.theater.name,
+            },
+            "selectedSeats": [
+                {
+                    "seat_number": booking.seat.seat_number
+                }
+            ],
+            "total": 250,
+            "status": "Confirmed",
+            "booked_at": booking.booked_at.isoformat(),
+        })
+
+    return JsonResponse(data, safe=False)

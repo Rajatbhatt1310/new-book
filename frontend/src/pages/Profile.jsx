@@ -16,17 +16,17 @@ function Profile() {
       return;
     }
 
-    async function loadBookings() {
+    const loadBookings = async () => {
       try {
         const data = await getMyBookings();
-        setBookings(data || []);
-      } catch (error) {
-        console.error("Failed to load bookings:", error);
+        setBookings(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Failed to load bookings:", err);
         setBookings([]);
       } finally {
         setLoading(false);
       }
-    }
+    };
 
     loadBookings();
   }, [isAuthenticated]);
@@ -50,8 +50,8 @@ function Profile() {
     <section className="container profile-page">
       <div className="profile-card">
         <span className="eyebrow">Profile</span>
-        <h1>{user.name}</h1>
-        <p>{user.email}</p>
+        <h1>{user?.name}</h1>
+        <p>{user?.email}</p>
       </div>
 
       <div className="section-heading">
@@ -66,7 +66,9 @@ function Profile() {
       </div>
 
       {loading ? (
-        <div className="state-card">Loading bookings...</div>
+        <div className="state-card">
+          Loading bookings...
+        </div>
       ) : bookings.length === 0 ? (
         <div className="state-card">
           No bookings found for your account.
@@ -76,14 +78,14 @@ function Profile() {
           {bookings.map((booking) => (
             <article className="history-card" key={booking.id}>
               <div>
-                <h3>{booking.movie.name}</h3>
+                <h3>{booking.movie?.name}</h3>
 
-                <p>{booking.theater.name}</p>
+                <p>{booking.theater?.name}</p>
 
                 <p className="muted">
                   Seats:{" "}
                   {booking.selectedSeats
-                    .map((seat) => seat.seat_number)
+                    ?.map((seat) => seat.seat_number)
                     .join(", ")}
                 </p>
 
@@ -95,7 +97,9 @@ function Profile() {
               </div>
 
               <div className="history-price">
-                <strong>{formatCurrency(booking.total)}</strong>
+                <strong>
+                  {formatCurrency(booking.total ?? 0)}
+                </strong>
 
                 <span>{booking.status}</span>
               </div>
