@@ -35,12 +35,33 @@ async function ensureCSRF() {
 
 async function request(endpoint, options = {}, fallbackValue = null) {
   try {
+    // Get CSRF cookie before every POST/PUT/PATCH/DELETE request
+    if (
+      options.method &&
+      options.method !== "GET"
+    ) {
+      await ensureCSRF();
+    }
+
+    const headers = {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    };
+
+    const csrfToken = getCookie("csrftoken");
+
+    if (
+      options.method &&
+      options.method !== "GET" &&
+      csrfToken
+    ) {
+      headers["X-CSRFToken"] = csrfToken;
+    }
+
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      headers: {
-        "Content-Type": "application/json",
-        ...(options.headers || {}),
-      },
+      credentials: "include",
       ...options,
+      headers,
     });
 
     if (!response.ok) {
@@ -49,7 +70,7 @@ async function request(endpoint, options = {}, fallbackValue = null) {
 
     return await response.json();
   } catch (error) {
-    console.info("Using fallback data:", error.message);
+    console.error(error);
     return fallbackValue;
   }
 }
