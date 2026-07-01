@@ -79,16 +79,29 @@ def api_me(request):
     })
 
 
+from django.contrib.auth.models import User
+
 @require_http_methods(["POST"])
 def api_login(request):
     data = json.loads(request.body)
 
-    username = data.get("username")
+    email = data.get("email")
     password = data.get("password")
+
+    try:
+        user_obj = User.objects.get(email=email)
+    except User.DoesNotExist:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Invalid email or password.",
+            },
+            status=400,
+        )
 
     user = authenticate(
         request,
-        username=username,
+        username=user_obj.username,
         password=password,
     )
 
@@ -120,17 +133,18 @@ def api_logout(request):
     return JsonResponse({
         "success": True
     })
-
-
 @require_http_methods(["POST"])
 def api_signup(request):
     data = json.loads(request.body)
 
+    email = data.get("email")
+    password = data.get("password")
+
     form = UserRegisterForm({
-        "username": data.get("username"),
-        "email": data.get("email"),
-        "password1": data.get("password"),
-        "password2": data.get("password"),
+        "username": email,
+        "email": email,
+        "password1": password,
+        "password2": password,
     })
 
     if not form.is_valid():

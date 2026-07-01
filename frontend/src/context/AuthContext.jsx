@@ -1,56 +1,102 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+import {
+  loginUser,
+  signupUser,
+  logoutUser,
+  getCurrentUser,
+} from "../services/api.js";
 
 const AuthContext = createContext(null);
-const USER_KEY = "bookmyseat_user";
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem(USER_KEY);
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
-      localStorage.setItem(USER_KEY, JSON.stringify(user));
-    } else {
-      localStorage.removeItem(USER_KEY);
+    async function loadUser() {
+      try {
+        const data = await getCurrentUser();
+
+        if (data?.authenticated) {
+          setUser({
+            id: data.user.id,
+            name: data.user.username,
+            email: data.user.email,
+          });
+        } else {
+          setUser(null);
+        }
+      } catch (err) {
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
     }
-  }, [user]);
 
-  function login(credentials) {
-    const loggedInUser = {
-      name: credentials.email.split("@")[0] || "Movie Fan",
-      email: credentials.email,
-    };
-    setUser(loggedInUser);
-    return loggedInUser;
+    loadUser();
+  }, []);
+
+  async function login(credentials) {
+    const data = await loginUser(credentials);
+
+    if (!data.success) {
+      throw new Error(data.message || "Login failed");
+    }
+
+    setUser({
+      id: data.user.id,
+      name: data.user.username,
+      email: data.user.email,
+    });
+
+    return data.user;
   }
 
-  function signup(formData) {
-    const createdUser = {
-      name: formData.name,
-      email: formData.email,
-    };
-    setUser(createdUser);
-    return createdUser;
+  async function signup(formData) {
+    const data = await signupUser(formData);
+
+    if (!data.success) {
+      throw new Error("Signup failed");
+    }
+
+    setUser({
+      id: data.user.id,
+      name: data.user.username,
+      email: data.user.email,
+    });
+
+    return data.user;
   }
 
-  function logout() {
+  async function logout() {
+    await logoutUser();
     setUser(null);
   }
 
   const value = useMemo(
     () => ({
       user,
-      isAuthenticated: Boolean(user),
+      loading,
+      isAuthenticated: !!user,
       login,
       signup,
       logout,
     }),
-    [user]
+    [user, loading]
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {!loading && children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {

@@ -5,7 +5,33 @@ import {
 } from "../data/dummyData.js";
 
 const API_BASE_URL = "/api";
-  
+
+function getCookie(name) {
+  let cookieValue = null;
+
+  if (document.cookie && document.cookie !== "") {
+    const cookies = document.cookie.split(";");
+
+    for (let cookie of cookies) {
+      cookie = cookie.trim();
+
+      if (cookie.startsWith(name + "=")) {
+        cookieValue = decodeURIComponent(
+          cookie.substring(name.length + 1)
+        );
+        break;
+      }
+    }
+  }
+
+  return cookieValue;
+}
+
+async function ensureCSRF() {
+  await fetch(`${API_BASE_URL}/me/`, {
+    credentials: "include",
+  });
+}
 
 async function request(endpoint, options = {}, fallbackValue = null) {
   try {
@@ -194,5 +220,56 @@ export async function getMyBookings() {
       credentials: "include",
     },
     []
+  );
+}
+// ================= Authentication =================
+
+export async function loginUser(credentials) {
+  return request(
+    "/login/",
+    {
+      method: "POST",
+      credentials: "include",
+      body: JSON.stringify(credentials),
+    },
+    null
+  );
+}
+
+export async function signupUser(formData) {
+  return request(
+    "/signup/",
+    {
+      method: "POST",
+      credentials: "include",
+      body: JSON.stringify({
+        username: formData.name,
+        email: formData.email,
+        password: formData.password,
+      }),
+    },
+    null
+  );
+}
+
+export async function logoutUser() {
+  return request(
+    "/logout/",
+    {
+      method: "POST",
+      credentials: "include",
+    },
+    null
+  );
+}
+
+export async function getCurrentUser() {
+  return request(
+    "/me/",
+    {
+      method: "GET",
+      credentials: "include",
+    },
+    null
   );
 }

@@ -14,7 +14,7 @@ application = get_wsgi_application()
 app = application
 
 
-# -------- TEMPORARY ADMIN CREATION --------
+
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -38,4 +38,3 @@ user.is_superuser = True
 user.save()
 
 print("✓ Admin user created/updated successfully")
-# -------- END TEMPORARY CODE --------
