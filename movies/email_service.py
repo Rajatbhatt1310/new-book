@@ -51,7 +51,14 @@ def send_booking_confirmation(payment, recipient_email):
         )
 
         message.attach_alternative(html_content, "text/html")
-        message.send()
+        print("=" * 50)
+        print("FROM:", settings.DEFAULT_FROM_EMAIL)
+        print("TO:", recipient_email)
+        print("SUBJECT:", email_delivery.subject)
+        
+        result = message.send()
+        
+        print("SEND RESULT:", result)
 
         email_delivery.status = "sent"
         email_delivery.sent_at = timezone.now()
