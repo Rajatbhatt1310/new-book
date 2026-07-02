@@ -29,7 +29,7 @@ async function request(endpoint, options = {}, fallbackValue = null) {
   }
 
   try {
-    // Get CSRF cookie before every non-GET request
+    // Fetch CSRF cookie before every non-GET request
     if (options.method && options.method !== "GET") {
       await fetch(`${API_BASE_URL}/me/`, {
         credentials: "include",
@@ -38,32 +38,9 @@ async function request(endpoint, options = {}, fallbackValue = null) {
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       credentials: "include",
-
       headers: {
         "Content-Type": "application/json",
         "X-CSRFToken": getCookie("csrftoken"),
-        ...(options.headers || {}),
-      },
-
-      ...options,
-    });
-
-    if (!response.ok) {
-      throw new Error(`Request failed with status ${response.status}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.info("Using fallback data:", error.message);
-    return fallbackValue;
-  }
-}
-
-async function request(endpoint, options = {}, fallbackValue = null) {
-  try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      headers: {
-        "Content-Type": "application/json",
         ...(options.headers || {}),
       },
       ...options,
@@ -238,6 +215,7 @@ export async function getAdminAnalytics() {
 
   return response.json();
 }
+
 export async function getMyBookings() {
   return request(
     "/my-bookings/",
@@ -248,6 +226,7 @@ export async function getMyBookings() {
     []
   );
 }
+
 // ================= Authentication =================
 
 export async function loginUser(credentials) {
