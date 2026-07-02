@@ -12,17 +12,35 @@ function MovieCard({ movie }) {
       ? movie.genres.map((genre) => genre.name).join(", ")
       : "Cinema";
 
-  const languageText =
-    movie.language?.name || "Multi-language";
+  const languageText = movie.language?.name || "Multi-language";
+
+  const posterSrc =
+    movie.image_url ||
+    (movie.image
+      ? `${import.meta.env.VITE_API_BASE_URL || ""}${movie.image}`
+      : null);
 
   return (
     <article className="movie-card" onClick={openTheaters}>
       <div className="poster-frame">
-        {movie.image ? (
-          <img src={movie.image} alt={`${movie.name} poster`} />
-        ) : (
-          <div className="poster-fallback">{movie.name}</div>
-        )}
+        {posterSrc ? (
+          <img
+            src={posterSrc}
+            alt={`${movie.name} poster`}
+            onError={(e) => {
+              e.target.style.display = "none";
+              e.target.parentElement.querySelector(".poster-fallback").style.display =
+                "flex";
+            }}
+          />
+        ) : null}
+
+        <div
+          className="poster-fallback"
+          style={{ display: posterSrc ? "none" : "flex" }}
+        >
+          {movie.name}
+        </div>
 
         <span className="rating-badge">
           {movie.rating || "New"} / 10
