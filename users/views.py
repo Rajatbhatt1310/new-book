@@ -88,13 +88,17 @@ def api_login(request):
     email = data.get("email")
     password = data.get("password")
 
+    print("EMAIL RECEIVED:", email)
+
     try:
         user_obj = User.objects.get(email=email)
+        print("USER FOUND:", user_obj.username)
     except User.DoesNotExist:
+        print("USER NOT FOUND")
         return JsonResponse(
             {
                 "success": False,
-                "message": "Invalid email or password.",
+                "message": "Email not found",
             },
             status=400,
         )
@@ -106,13 +110,16 @@ def api_login(request):
     )
 
     if user is None:
+        print("PASSWORD INCORRECT")
         return JsonResponse(
             {
                 "success": False,
-                "message": "Invalid username or password."
+                "message": "Password incorrect",
             },
             status=400,
         )
+
+    print("LOGIN SUCCESS")
 
     login(request, user)
 
