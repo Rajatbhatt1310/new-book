@@ -28,6 +28,7 @@ from django.db.models import Count, Sum, Q, F, FloatField, ExpressionWrapper
 from django.db.models.functions import TruncDate, TruncWeek, TruncMonth, ExtractHour
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator, EmptyPage
+from .email_service import send_booking_confirmation
 
 def movie_list(request):
     search_query = request.GET.get("search")
@@ -527,15 +528,10 @@ def confirm_booking(request):
         email_status = "not_created"
 
         if recipient_email and "@" in recipient_email:
-            EmailDelivery.objects.get_or_create(
+            email_status = send_booking_confirmation(
                 payment=payment,
-                defaults={
-                    "recipient_email": recipient_email,
-                    "subject": f"Booking Confirmed - {theater.movie.name}",
-                    "status": "queued",
-                }
+                recipient_email=recipient_email,
             )
-            email_status = "queued"
 
     return JsonResponse({
         "id": f"BMS-{payment.id}",

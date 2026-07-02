@@ -6,62 +6,46 @@ import {
 
 const API_BASE_URL = "/api";
 
-function getCookie(name) {
-  let cookieValue = null;
+async function request(endpoint, options = {}, fallbackValue = null) {
+  function getCookie(name) {
+    let cookieValue = null;
 
-  if (document.cookie && document.cookie !== "") {
-    const cookies = document.cookie.split(";");
+    if (document.cookie && document.cookie !== "") {
+      const cookies = document.cookie.split(";");
 
-    for (let cookie of cookies) {
-      cookie = cookie.trim();
+      for (let cookie of cookies) {
+        cookie = cookie.trim();
 
-      if (cookie.startsWith(name + "=")) {
-        cookieValue = decodeURIComponent(
-          cookie.substring(name.length + 1)
-        );
-        break;
+        if (cookie.startsWith(name + "=")) {
+          cookieValue = decodeURIComponent(
+            cookie.substring(name.length + 1)
+          );
+          break;
+        }
       }
     }
+
+    return cookieValue;
   }
 
-  return cookieValue;
-}
-
-async function ensureCSRF() {
-  await fetch(`${API_BASE_URL}/me/`, {
-    credentials: "include",
-  });
-}
-
-async function request(endpoint, options = {}, fallbackValue = null) {
   try {
-    // Get CSRF cookie before every POST/PUT/PATCH/DELETE request
-    if (
-      options.method &&
-      options.method !== "GET"
-    ) {
-      await ensureCSRF();
-    }
-
-    const headers = {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    };
-
-    const csrfToken = getCookie("csrftoken");
-
-    if (
-      options.method &&
-      options.method !== "GET" &&
-      csrfToken
-    ) {
-      headers["X-CSRFToken"] = csrfToken;
+    // Get CSRF cookie before every non-GET request
+    if (options.method && options.method !== "GET") {
+      await fetch(`${API_BASE_URL}/me/`, {
+        credentials: "include",
+      });
     }
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       credentials: "include",
+
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken"),
+        ...(options.headers || {}),
+      },
+
       ...options,
-      headers,
     });
 
     if (!response.ok) {
@@ -70,7 +54,28 @@ async function request(endpoint, options = {}, fallbackValue = null) {
 
     return await response.json();
   } catch (error) {
-    console.error(error);
+    console.info("Using fallback data:", error.message);
+    return fallbackValue;
+  }
+}
+
+async function request(endpoint, options = {}, fallbackValue = null) {
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {}),
+      },
+      ...options,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.info("Using fallback data:", error.message);
     return fallbackValue;
   }
 }
