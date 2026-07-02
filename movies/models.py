@@ -19,34 +19,48 @@ class Language(models.Model):
 
 class Movie(models.Model):
     name = models.CharField(max_length=255)
-    image = models.ImageField(upload_to="movies/")
+
+    image = models.ImageField(
+        upload_to="movies/",
+        blank=True,
+        null=True,
+    )
+
+    image_url = models.URLField(
+        blank=True,
+        null=True,
+        help_text="Paste a direct image URL (TMDB, IMDb, etc.)",
+    )
+
     rating = models.DecimalField(max_digits=3, decimal_places=1)
     cast = models.TextField()
     description = models.TextField(blank=True, null=True)
     trailer_url = models.URLField(blank=True, null=True)
+
     genres = models.ManyToManyField(
         Genre,
         related_name="movies",
-        blank=True
+        blank=True,
     )
+
     language = models.ForeignKey(
         Language,
-        on_delete = models.SET_NULL,
-        related_name ="movies",
+        on_delete=models.SET_NULL,
+        related_name="movies",
         null=True,
-        blank=True
+        blank=True,
     )
 
     def __str__(self):
         return self.name
     
 
-class Meta:
-    indexes = [
-        models.Index(fields=["name"]),
-        models.Index(fields=["rating"]),
-        models.Index(fields=["language"]),
-    ]
+    class Meta:
+        indexes = [
+            models.Index(fields=["name"]),
+            models.Index(fields=["rating"]),
+            models.Index(fields=["language"]),
+        ]
 
 class Theater(models.Model):
     name = models.CharField(max_length=255)
