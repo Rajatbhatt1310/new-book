@@ -14,6 +14,7 @@ from .models import (
     EmailDelivery,
     
 )
+import threading
 from .utilities import get_youtube_embed_url
 from django.http import JsonResponse
 import json, razorpay, hmac, hashlib, uuid
@@ -525,13 +526,18 @@ def confirm_booking(request):
             booked.append(seat.seat_number)
 
         recipient_email = body.get("contact") or request.user.email
-        email_status = "not_created"
+
+        email_status = "queued"
 
         if recipient_email and "@" in recipient_email:
-            email_status = send_booking_confirmation(
-                payment=payment,
-                recipient_email=recipient_email,
-            )
+            threading.Thread(
+                target=send_booking_confirmation,
+                kwargs={
+                    "payment": payment,
+                    "recipient_email": recipient_email,
+                    },
+                daemon=True,
+            ).start()
 
     return JsonResponse({
         "id": f"BMS-{payment.id}",
@@ -541,7 +547,7 @@ def confirm_booking(request):
         "seats": booked,
         "payment_id": razorpay_payment_id,
         "order_id": razorpay_order_id,
-        "email_status": email_status,
+        "email_status": "queued",
     })
 
 
