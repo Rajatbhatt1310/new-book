@@ -34,6 +34,7 @@ export function AuthProvider({ children }) {
           setUser(null);
         }
       } catch (err) {
+        console.error(err);
         setUser(null);
       } finally {
         setLoading(false);
@@ -45,6 +46,10 @@ export function AuthProvider({ children }) {
 
   async function login(credentials) {
     const data = await loginUser(credentials);
+
+    if (!data) {
+      throw new Error("Invalid email or password");
+    }
 
     if (!data.success) {
       throw new Error(data.message || "Login failed");
@@ -62,8 +67,12 @@ export function AuthProvider({ children }) {
   async function signup(formData) {
     const data = await signupUser(formData);
 
-    if (!data.success) {
+    if (!data) {
       throw new Error("Signup failed");
+    }
+
+    if (!data.success) {
+      throw new Error(data.message || "Signup failed");
     }
 
     setUser({
@@ -76,8 +85,11 @@ export function AuthProvider({ children }) {
   }
 
   async function logout() {
-    await logoutUser();
-    setUser(null);
+    try {
+      await logoutUser();
+    } finally {
+      setUser(null);
+    }
   }
 
   const value = useMemo(
